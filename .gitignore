@@ -82,6 +82,8 @@ dkms.conf
 *.la
 *.a
 *.lib
+*.pio/
+*.vscode/
 
 # Keys & Certs
 *.pem

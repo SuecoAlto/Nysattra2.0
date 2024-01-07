@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "DHT.h"
 
 #define DHTTYPE DHT22   // DHT 22 (AM2302, AM2321)
