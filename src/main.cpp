@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
+#include "sensors.h"  // Include the header for sensor functions
 
 // Your WiFi credentials
 const char* ssid = "Tele2_99a515"; 						// WIFI SSID
@@ -44,24 +45,54 @@ void checkWiFiStatus() {
 void setup() {
   Serial.begin(115200); 								// Start serial communication
   connectToWiFi(); 										// Call the function to connect to WiFi
+  initSensors(); 										// Initialize sensors after starting the serial communication
 }
 
 
 
 void loop() {
-  static unsigned long lastAttemptTime = 0; // Store the last attempt time
+  static unsigned long lastAttemptTime = 0; 			// Store the last attempt time
   if (WiFi.status() != WL_CONNECTED) {
-    if (millis() - lastAttemptTime > 10000) { // Check if 10 seconds have passed
-      connectToWiFi(); // Attempt to reconnect
-      lastAttemptTime = millis(); // Update the last attempt time
+    if (millis() - lastAttemptTime > 10000) { 			// Check if 10 seconds have passed
+      connectToWiFi(); 									// Attempt to reconnect
+      lastAttemptTime = millis(); 						// Update the last attempt time
     }
   } else {
     
-	// Add your main code here when WiFi is connected
+    // WiFi is connected, read sensor values here
+    float temperature, humidity;
+    int waterLevel, soilMoisture;
+
+    if (readTemperature(temperature)) {
+        Serial.print("Temperature: ");
+        Serial.println(temperature);
+    } else {
+        Serial.println("Failed to read temperature!");
+    }
+
+    if (readHumidity(humidity)) {
+        Serial.print("Humidity: ");
+        Serial.println(humidity);
+    } else {
+        Serial.println("Failed to read humidity!");
+    }
+
+    if (readWaterLevel(waterLevel)) {
+        Serial.print("Water Level: ");
+        Serial.println(waterLevel);
+    } else {
+        Serial.println("Failed to read water level!");
+    }
+
+    if (readSoilMoisture(soilMoisture)) {
+        Serial.print("Soil Moisture: ");
+        Serial.println(soilMoisture);
+    } else {
+        Serial.println("Failed to read soil moisture! \n");
+    }
   
   }
 
-
   checkWiFiStatus(); // Check and print the WiFi status
-  delay(1000); // Main loop delay
+  delay(4000); // Main loop delay
 }
