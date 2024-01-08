@@ -3,9 +3,9 @@
 #include "DHT.h"
 
 #define DHTTYPE DHT22   // DHT 22 (AM2302, AM2321)
-
-// DHT Sensor
-uint8_t DHTPin = 27; 
+#define DHTPin 27       // DHT Sensor Pin
+#define WaterLevelPin 33 // Water Level Sensor Pin
+#define SoilMoisturePin 32 // Soil Moisture Sensor Pin
 
 // Initialize DHT sensor.
 DHT dht(DHTPin, DHTTYPE);                
