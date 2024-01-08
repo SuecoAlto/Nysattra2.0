@@ -51,8 +51,31 @@ void setup() {
 }
 
 
+// New function to print the water level status
+void printWaterLevelStatus(int waterLevel) {
+    if (waterLevel == WATER_LOW) {
+        Serial.println("Water level is low");
+    } else if (waterLevel == WATER_MID) {
+        Serial.println("Water level is mid");
+    } else if (waterLevel == WATER_HIGH) {
+        Serial.println("Water level is good");
+    } else {
+        Serial.println("Water level reading is out of expected range");
+    }
+}
 
-
+// New function to print the soil moisture status
+void printSoilMoistureStatus(int soilMoisture) {
+    if (soilMoisture == MOISTURE_LOW) {
+        Serial.println("Soil moisture is LOW");
+    } else if (soilMoisture == MOISTURE_MID) {
+        Serial.println("Soil moisture is MID");
+    } else if (soilMoisture == MOISTURE_HIGH) {
+        Serial.println("Soil moisture is HIGH");
+    } else {
+        Serial.println("Soil moisture reading is out of expected range");
+    }
+}
 
 void loop() {
   static unsigned long lastAttemptTime = 0; 			  // Store the last attempt time
@@ -82,15 +105,15 @@ void loop() {
 
     if (readWaterLevel(waterLevel)) {
         Serial.print("Water Level: ");
-        Serial.println(waterLevel);
+        printWaterLevelStatus(waterLevel); // Print the water level status
     } else {
         Serial.println("Failed to read water level!");
     }
 
     if (readSoilMoisture(soilMoisture)) {
         Serial.print("Soil Moisture: ");
-        Serial.println(soilMoisture);
-		Serial.print("\n");
+        printSoilMoistureStatus(soilMoisture); // Print the soil moisture status
+		    Serial.print("\n");
     } else {
         Serial.println("Failed to read soil moisture! \n");
     }
