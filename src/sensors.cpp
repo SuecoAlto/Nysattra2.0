@@ -3,12 +3,6 @@
 // Initialize the DHT sensor
 DHT dht(DHTPin, DHT22);
 
-// Define water level categories
-const int LOW = 1;
-const int MID = 2;
-const int HIGH = 3;
-
-
 void initSensors() {
     dht.begin();
     pinMode(WaterLevelPin, INPUT);
@@ -32,18 +26,31 @@ bool readWaterLevel(int &waterLevel) {
         return false;
     } else if (waterLevel > 0 && waterLevel <= 300) {
         // LOW water level
-        waterLevel = LOW;
+        waterLevel = WATER_LOW;
     } else if (waterLevel > 300 && waterLevel <= 700) {
         // MID water level
-        waterLevel = MID;
+        waterLevel = WATER_MID;
     } else if (waterLevel > 700) {
         // HIGH water level
-        waterLevel = HIGH;
+        waterLevel = WATER_HIGH;
     }
     return true;
 }
 
 bool readSoilMoisture(int &soilMoisture) {
     soilMoisture = analogRead(SoilMoisturePin);
-    return soilMoisture > 0; // Assuming 0 is the error value
+        if (soilMoisture == 0) {
+        // Error value, sensor not reading correctly
+        return false;
+    } else if (soilMoisture > 0 && soilMoisture <= 300) {
+        // LOW moisture level
+        soilMoisture = MOISTURE_LOW;
+    } else if (soilMoisture > 300 && soilMoisture <= 700) {
+        // MID moisture level
+        soilMoisture = MOISTURE_MID;
+    } else if (soilMoisture > 700) {
+        // HIGH moisture level
+        soilMoisture = MOISTURE_HIGH;
+    }
+    return true;
 }

@@ -8,14 +8,14 @@ const char* password = "fjnkdjy2"; 						// WIFI PASSWORD
 
 // Function to connect to WiFi
 void connectToWiFi() {
-  WiFi.mode(WIFI_STA); 									// Set Wi-Fi mode to "Station"
-  WiFi.begin(ssid, password);							// Begin connecting to WiFi with provided credentials
+  WiFi.mode(WIFI_STA); 									          // Set Wi-Fi mode to "Station"
+  WiFi.begin(ssid, password);							        // Begin connecting to WiFi with provided credentials
   Serial.print("Connecting to WiFi\n"); 					// Print a connecting message
 }
 
 // Function to check WiFi status and print changes
 void checkWiFiStatus() {
-  static int lastWiFiStatus = -1; // Store the last WiFi status
+  static int lastWiFiStatus = -1;                 // Store the last WiFi status
   if (WiFi.status() != lastWiFiStatus) { // Check if the status has changed
     lastWiFiStatus = WiFi.status(); // Update the last status
     switch (WiFi.status()) {
