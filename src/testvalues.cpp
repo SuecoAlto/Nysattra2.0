@@ -14,6 +14,8 @@ void setup() {
   Serial.begin(115200);
   delay(100);
   dht.begin();
+  pinMode(WaterLevelPin, INPUT);       // Initialize the water level pin as an input
+  pinMode(SoilMoisturePin, INPUT);     // Initialize the soil moisture pin as an input
 }
 
 bool errorOccurred = false;  // Global variable to track if error has occurred
