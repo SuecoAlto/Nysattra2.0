@@ -13,7 +13,6 @@ void connectToWiFi() {
   Serial.print("Connecting to WiFi\n"); 					// Print a connecting message
 }
 
-
 // Function to check WiFi status and print changes
 void checkWiFiStatus() {
   static int lastWiFiStatus = -1; // Store the last WiFi status
@@ -42,6 +41,9 @@ void checkWiFiStatus() {
 }
 
 
+
+
+
 void setup() {
   Serial.begin(115200); 								// Start serial communication
   connectToWiFi(); 										// Call the function to connect to WiFi
@@ -50,15 +52,16 @@ void setup() {
 
 
 
+
+
 void loop() {
-  static unsigned long lastAttemptTime = 0; 			// Store the last attempt time
+  static unsigned long lastAttemptTime = 0; 			  // Store the last attempt time
   if (WiFi.status() != WL_CONNECTED) {
     if (millis() - lastAttemptTime > 10000) { 			// Check if 10 seconds have passed
-      connectToWiFi(); 									// Attempt to reconnect
-      lastAttemptTime = millis(); 						// Update the last attempt time
+      connectToWiFi(); 									            // Attempt to reconnect
+      lastAttemptTime = millis(); 						      // Update the last attempt time
     }
   } else {
-    
     // WiFi is connected, read sensor values here
     float temperature, humidity;
     int waterLevel, soilMoisture;
@@ -87,10 +90,10 @@ void loop() {
     if (readSoilMoisture(soilMoisture)) {
         Serial.print("Soil Moisture: ");
         Serial.println(soilMoisture);
+		Serial.print("\n");
     } else {
         Serial.println("Failed to read soil moisture! \n");
     }
-  
   }
 
   checkWiFiStatus(); // Check and print the WiFi status
