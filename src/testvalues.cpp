@@ -18,30 +18,43 @@ void setup() {
   pinMode(SoilMoisturePin, INPUT);     // Initialize the soil moisture pin as an input
 }
 
-bool errorOccurred = false;  // Global variable to track if error has occurred
+
 
 void loop() {
-  if (!errorOccurred) {
-    float Temperature = dht.readTemperature();
-    float Humidity = dht.readHumidity();
 
-    if (isnan(Humidity) || isnan(Temperature)) {
-      Serial.println("Failed to read from DHT sensor!");
-      errorOccurred = true;  // Set error flag
-    } else {
-      Serial.print("Temperature: ");
-      Serial.print(Temperature);
-      Serial.print(" °C, Humidity: ");
-      Serial.print(Humidity);
-      Serial.println(" %");
-    }
-  }
+  float Temperature = dht.readTemperature();
+  float Humidity = dht.readHumidity();
+  int WaterLevel = analogRead(WaterLevelPin);    // Read the water level
+  int SoilMoisture = analogRead(SoilMoisturePin); // Read the soil moisture level
 
-  if (errorOccurred) {
-    while(true) {
-      // Do nothing, effectively stopping the program
-    }
+if (isnan(Humidity) || isnan(Temperature)) {
+    Serial.println("Failed to read from DHT sensor!");
   } else {
-    delay(2000);  // Normal operation delay
+    Serial.print("Temperature: ");
+    Serial.print(Temperature);
+    Serial.print(" *C ");
+    Serial.print("Humidity: ");
+    Serial.print(Humidity);
+    Serial.print("% ");
   }
+
+  // Assume that a reading of 0 from the analog sensors indicates a failure.
+  // Adjust this condition based on the behavior of your specific sensors.
+  if (WaterLevel == 0) {
+    Serial.println("Failed to read from water level sensor!");
+  } else {
+    Serial.print("Water Level: ");
+    Serial.print(WaterLevel);
+    Serial.print(" ");
+  }
+
+  if (SoilMoisture == 0) {
+    Serial.println("Failed to read from soil moisture sensor!");
+  } else {
+    Serial.print("Soil Moisture: ");
+    Serial.println(SoilMoisture);
+  }
+  
+    delay(2000);  // Normal operation delay
+  
 }
