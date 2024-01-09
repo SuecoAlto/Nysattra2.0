@@ -27,10 +27,10 @@ bool readWaterLevel(int &waterLevel) {
     } else if (waterLevel > 0 && waterLevel <= 300) {
         // LOW water level
         waterLevel = WATER_LOW;
-    } else if (waterLevel > 300 && waterLevel <= 700) {
+    } else if (waterLevel > 300 && waterLevel <= 600) {
         // MID water level
         waterLevel = WATER_MID;
-    } else if (waterLevel > 700) {
+    } else if (waterLevel > 600) {
         // HIGH water level
         waterLevel = WATER_HIGH;
     }
@@ -45,10 +45,10 @@ bool readSoilMoisture(int &soilMoisture) {
     } else if (soilMoisture > 0 && soilMoisture <= 300) {
         // LOW moisture level
         soilMoisture = MOISTURE_LOW;
-    } else if (soilMoisture > 300 && soilMoisture <= 700) {
+    } else if (soilMoisture > 300 && soilMoisture <= 600) {
         // MID moisture level
         soilMoisture = MOISTURE_MID;
-    } else if (soilMoisture > 700) {
+    } else if (soilMoisture > 600) {
         // HIGH moisture level
         soilMoisture = MOISTURE_HIGH;
     }

@@ -89,4 +89,5 @@ dkms.conf
 *.pem
 *.key
 *.sh
-*/Connectpackage
+*Connectpackage/
+*secrets.cpp

@@ -1,17 +1,23 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include "sensors.h"  // Include the header for sensor functions
+#include "secrets.h"
+#include <WiFi.h>
+
+#include <PubSubClient.h>
+#include <ArduinoJson.h>
+#include <WiFiClientSecure.h>
+#include "Adafruit_Sensor.h"
+
+#define AWS_IOT_PUBLISH_TOPIC   "Nysattra_pub"
+#define AWS_IOT_SUBSCRIBE_TOPIC "Nysattra_sub"
 
 // Your WiFi credentials
 const char* ssid = "Tele2_99a515"; 						// WIFI SSID
 const char* password = "fjnkdjy2"; 						// WIFI PASSWORD
 
-// Function to connect to WiFi
-void connectToWiFi() {
-  WiFi.mode(WIFI_STA); 									          // Set Wi-Fi mode to "Station"
-  WiFi.begin(ssid, password);							        // Begin connecting to WiFi with provided credentials
-  Serial.print("Connecting to WiFi\n"); 					// Print a connecting message
-}
+unsigned long lastAttemptTime = 0;
+const unsigned long attemptInterval = 10000;
 
 // Function to check WiFi status and print changes
 void checkWiFiStatus() {
@@ -40,25 +46,98 @@ void checkWiFiStatus() {
   }
 }
 
+void connectToServices() {
+  // Anslut till WiFi
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.print("Connecting to WiFi...");
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid, password);
+    unsigned long startTime = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - startTime < 10000) {
+      delay(500);
+      Serial.print(".");
+      checkWiFiStatus();
+    }
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("Failed to connect to WiFi.");
+      return;
+    }
+    Serial.println("Connected to WiFi.");
+  }
+
+  // Konfigurera WiFiClientSecure med AWS IoT-certifikat
+  net.setCACert(AWS_CERT_CA);
+  net.setCertificate(AWS_CERT_CRT);
+  net.setPrivateKey(AWS_CERT_PRIVATE);
+
+  // Anslut till AWS IoT Core
+  Serial.println("Connecting to AWS IoT...");
+  client.setServer(AWS_IOT_ENDPOINT, 8883);
+  client.setCallback(messageHandler);
+
+  while (!client.connect(THINGNAME)) {
+    Serial.print(".");
+    delay(100);
+  }
+
+  if (client.connected()) {
+    Serial.println("Connected to AWS IoT.");
+    client.subscribe(AWS_IOT_SUBSCRIBE_TOPIC);
+  } else {
+    Serial.println("AWS IoT Timeout, failed to connect to AWS IoT ");
+  }
+}
 
 
+WiFiClientSecure net = WiFiClientSecure();
+PubSubClient client(net);
+ 
+
+// ---------------------------------------------------------------------------------- //
+// ---------------------------------------------------------------------------------- //
 
 
 void setup() {
   Serial.begin(115200); 								// Start serial communication
-  connectToWiFi(); 										// Call the function to connect to WiFi
+  connectToServices(); 										// Call the function to connect to WiFi
   initSensors(); 										// Initialize sensors after starting the serial communication
+}
+
+
+
+void publishMessage()
+{
+  StaticJsonDocument<256> doc;          // Create a JSON document
+  doc["temperature"] = temperature;
+  doc["humidity"] = humidity;
+  doc["waterLevel"] = waterLevel;
+  doc["soilMoisture"] = soilMoisture; // Fixed: Define the variable "soilMoisture"
+  char jsonBuffer[512];
+  serializeJson(doc, jsonBuffer); // print to client
+ 
+  client.publish(AWS_IOT_PUBLISH_TOPIC, jsonBuffer);
+}
+ 
+void messageHandler(char* topic, byte* payload, unsigned int length)
+{
+  Serial.print("incoming: ");
+  Serial.println(topic);
+ 
+  StaticJsonDocument<200> doc;
+  deserializeJson(doc, payload);
+  const char* message = doc["message"];
+  Serial.println(message);
 }
 
 
 // New function to print the water level status
 void printWaterLevelStatus(int waterLevel) {
     if (waterLevel == WATER_LOW) {
-        Serial.println("Water level is low");
+        Serial.println("Low");
     } else if (waterLevel == WATER_MID) {
-        Serial.println("Water level is mid");
+        Serial.println("Mid");
     } else if (waterLevel == WATER_HIGH) {
-        Serial.println("Water level is good");
+        Serial.println("Good");
     } else {
         Serial.println("Water level reading is out of expected range");
     }
@@ -67,58 +146,49 @@ void printWaterLevelStatus(int waterLevel) {
 // New function to print the soil moisture status
 void printSoilMoistureStatus(int soilMoisture) {
     if (soilMoisture == MOISTURE_LOW) {
-        Serial.println("Soil moisture is LOW");
+        Serial.println("Low");
     } else if (soilMoisture == MOISTURE_MID) {
-        Serial.println("Soil moisture is MID");
+        Serial.println("Mid");
     } else if (soilMoisture == MOISTURE_HIGH) {
-        Serial.println("Soil moisture is HIGH");
+        Serial.println("High");
     } else {
         Serial.println("Soil moisture reading is out of expected range");
     }
 }
 
+// ---------------------------------------------------------------------------------- //
+// ---------------------------------------------------------------------------------- //
+
+
 void loop() {
-  static unsigned long lastAttemptTime = 0; 			  // Store the last attempt time
-  if (WiFi.status() != WL_CONNECTED) {
-    if (millis() - lastAttemptTime > 10000) { 			// Check if 10 seconds have passed
-      connectToWiFi(); 									            // Attempt to reconnect
-      lastAttemptTime = millis(); 						      // Update the last attempt time
+  
+  // Hantera anslutningen till tjänsterna
+  unsigned long currentMillis = millis();
+
+  if (WiFi.status() != WL_CONNECTED || !client.connected()) {
+    if (currentMillis - lastAttemptTime > attemptInterval) {
+      connectToServices();
+      lastAttemptTime = currentMillis;
     }
   } else {
-    // WiFi is connected, read sensor values here
-    float temperature, humidity;
-    int waterLevel, soilMoisture;
+    // Hantera MQTT-meddelanden
+    client.loop();
 
-    if (readTemperature(temperature)) {
-        Serial.print("Temperature: ");
-        Serial.println(temperature);
-    } else {
-        Serial.println("Failed to read temperature!");
-    }
+    // Läs sensorvärdena här och lagra dem i respektive variabler
+    // float temperature, humidity;
+    // int waterLevel, soilMoisture;
+    // ... (sensorläsningslogik)
 
-    if (readHumidity(humidity)) {
-        Serial.print("Humidity: ");
-        Serial.println(humidity);
-    } else {
-        Serial.println("Failed to read humidity!");
-    }
+    // Publicera sensorvärdena
+    publishMessage(); // Se till att de rätta värdena skickas med här
 
-    if (readWaterLevel(waterLevel)) {
-        Serial.print("Water Level: ");
-        printWaterLevelStatus(waterLevel); // Print the water level status
-    } else {
-        Serial.println("Failed to read water level!");
-    }
-
-    if (readSoilMoisture(soilMoisture)) {
-        Serial.print("Soil Moisture: ");
-        printSoilMoistureStatus(soilMoisture); // Print the soil moisture status
-		    Serial.print("\n");
-    } else {
-        Serial.println("Failed to read soil moisture! \n");
-    }
   }
 
-  checkWiFiStatus(); // Check and print the WiFi status
-  delay(4000); // Main loop delay
+  checkWiFiStatus();
+
+  // Ytterligare logik kan läggas till här vid behov
+  
 }
+
+// ---------------------------------------------------------------------------------- //
+// ---------------------------------------------------------------------------------- //
